@@ -106,11 +106,7 @@ api.post("/tokenVal", async (req, res) => {
   return res.send(true);
 });
 
-// readNodeRels
-
-// readNodesRels
-
-//CREATE (f:Fastighet {title:'Fastighet1})-[r:`INGÅR_I_FASTIGHETSBESTÅND`]->(fb:Fastighetsbestånd) CREATE (f:Fastighet {title:'Fastighet2})-[r:`INGÅR_I_FASTIGHETSBESTÅND`]->(fb:Fastighetsbestånd) CREATE (f:Fastighet {title:'Fastighet3})-[r:`INGÅR_I_FASTIGHETSBESTÅND`]->(fb:Fastighetsbestånd) CREATE (f:Fastighet {title:'Fastighet4})-[r:`INGÅR_I_FASTIGHETSBESTÅND`]->(fb:Fastighetsbestånd) CREATE (f:Fastighet {title:'Fastighet5})-[r:`INGÅR_I_FASTIGHETSBESTÅND`]->(fb:Fastighetsbestånd) CREATE (f:Fastighet {title:'Fastighet6})-[r:`INGÅR_I_FASTIGHETSBESTÅND`]->(fb:Fastighetsbestånd)
+// Graph
 
 api.post("/readNodeParents", async (req, res) => {
   let query = `MATCH (n0:${req.body.nodeType}) where not exists (()<-[]-(n0)) OPTIONAL MATCH (n1)-[]->(n2:${req.body.nodeType}) where not exists (()<-[]-(n2)) with collect(distinct({id:toString(id(n0)), title:n0.title,type:labels(n0)[0]})) as ns with {nodes: ns}  as result RETURN apoc.convert.toJson(result)`;
@@ -161,7 +157,6 @@ api.post("/readConfig", async (req, res) => {
   with { nodes: ndss, rels: [ val in edgz where val.source is not null]} as json
   
   RETURN apoc.convert.toJson(json)`;
-  console.log(query);
 
   let response = await prop.apiCall(query);
   if (response.res.records[0] == null) {
@@ -216,7 +211,6 @@ api.post("/getConfigConfigRel", async (req, res) => {
 });
 
 api.post("/getConfigConfigNodes", async (req, res) => {
-  console.log(req.body);
 
   let query = `MATCH (n0)-[r]->(n1) where ID(n0)=${req.body.id} with n0,n1,r, collect([val in labels(n1) where not val in ["Config", "AdminConfig","SystemConfig","InformationConfig", "DataConfig"]]) as lbl unwind lbl as lb unwind lb as l with collect({nodeLabel:l,id:ID(n1),key:n1.key, value:n1.value, Rel:Type(r)}) as prps with {nodes:prps} as json RETURN apoc.convert.toJson(json)`;
 
@@ -227,18 +221,16 @@ api.post("/getConfigConfigNodes", async (req, res) => {
 });
 
 api.post("/getAdminConfigRels", async (req, res) => {
-  console.log(req.body);
 
   let query = `match (n0:Config:${req.body.obj.from})-[:HAS_REL]->(n)-[:TO_NODE]->(n1:Config:${req.body.obj.to}) with n,n0,n1, collect([val in labels(n) where not val in ["Config", "AdminConfig","SystemConfig","InformationConfig", "DataConfig"]]) as lbl unwind lbl as lb unwind lb as l with collect({id:ID(n),label:l, key:n.key, value:n.value}) as rls with {rels:rls} as json RETURN apoc.convert.toJson(json)`;
   let response = await prop.apiCall(query);
   let result = response.res.records[0].get(0);
-  console.log(query);
 
   res.send(result);
 });
 
 api.post("/getAsidRootConfig", async (req, res) => {
-  console.log(req.body);
+
   let label = req.body.selectedGraph + "Config";
 
   let query = `match (n:${label}:Node{value:"root"})  
@@ -258,7 +250,6 @@ api.post("/getAsidRootConfig", async (req, res) => {
 
   let response = await prop.apiCall(query);
   let result = response.res.records[0].get(0);
-  console.log(query);
 
   res.send(result);
 });
@@ -272,13 +263,12 @@ api.post("/getAsidChildProps", async (req, res) => {
 
   let response = await prop.apiCall(query);
   let result = response.res.records[0].get(0);
-  console.log(query);
 
   res.send(result);
 });
 
 api.post("/getSystemRootConfig", async (req, res) => {
-  console.log(req.body);
+
   let label = req.body.selectedGraph + "Config";
 
   let queryFirst=`match (n:${label}:Node{value:"root"})
@@ -290,9 +280,6 @@ api.post("/getSystemRootConfig", async (req, res) => {
   let parentConfigRes = JSON.parse(responseFirst.res.records[0].get(0)).parentConfig
   
   let query1 = `match (n:${label}:Node{value:"root"})
- 
-  
- 
   
  //hämta parents
   optional match (parent)-[:HAS_CONFIG]->(parentConfig:${parentConfigRes}{value:"root"}) where not (parent)-[]->()-[]->(parentConfig)
@@ -331,14 +318,12 @@ api.post("/getSystemRootConfig", async (req, res) => {
 
   let response = await prop.apiCall(query1);
   let result = response.res.records[0].get(0);
-  console.log(result)
 
   res.send(result);
 });
 
-
 api.post("/getSystemSub", async (req, res) => {
-  console.log(req.body);
+
   let label = req.body.selectedGraph + "Config";
 
   let queryFirst=`match (n:${label}:Node{value:"root"})
@@ -348,7 +333,6 @@ api.post("/getSystemSub", async (req, res) => {
   RETURN apoc.convert.toJson(json)`;
   
   let responseFirst = await prop.apiCall(queryFirst);
-  let parentConfigRes = JSON.parse(responseFirst.res.records[0].get(0)).parentConfig
   let parentRes = JSON.parse(responseFirst.res.records[0].get(0)).parent
 
   let query1 = `match (n:${label}:Node{value:"root"})
@@ -398,7 +382,6 @@ api.post("/getSystemSub", async (req, res) => {
 
   let response = await prop.apiCall(query1);
   let result = response.res.records[0].get(0);
-  console.log(result)
 
   res.send(result);
 
@@ -408,8 +391,6 @@ api.post("/createConfigNode", async (req, res) => {
   (created = prop.getTimeStamp()), (guid = v4());
 
   let query = `create (s:${req.body.labels[0]}:${req.body.labels[1]} {guid:'${guid}', created: '${created}', updated:'${created}', key:'${req.body.props.key}', value:'${req.body.props.value}'}) return s`;
-
-  console.log(query);
   //
   let response = await prop.apiCall(query);
   let result = response.res;
@@ -445,7 +426,6 @@ api.post("/createAsidRel", async (req, res) => {
 });
 
 api.post("/createConfigNodeRel", async (req, res) => {
-  console.log(req.body);
   let dir1 = "";
   let dir2 = "";
   if (req.body.direction == "to") {
@@ -468,8 +448,6 @@ api.post("/createConfigNodeRel", async (req, res) => {
     req.body.node.props.value
   }', guid:'${v4()}', created: '${created}', updated:'${created}'}) return n1`;
 
-  console.log(query);
-  //
   let response = await prop.apiCall(query);
   let result = response.res;
   res.send(result);
@@ -480,15 +458,13 @@ api.post("/createAdminConfigNode", async (req, res) => {
 
   let query = `create (s:${req.body.labels[0]}:${req.body.labels[1]} {guid:'${guid}', created: '${created}', updated:'${created}', key:'${req.body.props.key}', value:'${req.body.props.value}'}) return s`;
 
-  console.log(query);
-  //
+
   let response = await prop.apiCall(query);
   let result = response.res;
   res.send(result);
 });
 
 api.post("/createAdminConfigNodeRel", async (req, res) => {
-  console.log(req.body);
   let dir1 = "";
   let dir2 = "";
   if (req.body.direction == "to") {
@@ -499,9 +475,7 @@ api.post("/createAdminConfigNodeRel", async (req, res) => {
     dir2 = "->";
   }
 
-  let created = prop.getTimeStamp(),
-    guid = v4();
-  guid1 = v4();
+  let created = prop.getTimeStamp()
 
   let query = `MATCH (n0) where ID(n0)=${
     req.body.node.id
@@ -514,15 +488,14 @@ api.post("/createAdminConfigNodeRel", async (req, res) => {
   }', guid:'${v4()}', created: '${created}', updated:'${created}'}) return n1`;
 
   console.log(query);
-  //
+  
   let response = await prop.apiCall(query);
   let result = response.res;
   res.send(result);
 });
 
-// create node and rel
 api.post("/createRel", async (req, res) => {
-  const { nodeType, nodeLabel } = req.body.createObj.node.labels;
+
   const { type, to, from } = req.body.createObj.rel;
 
   let query = `MATCH (a) where id(a)=${parseInt(
@@ -531,13 +504,9 @@ api.post("/createRel", async (req, res) => {
     from
   )} create (a)<-[r:${type} {guid:'${v4()}', created: '${prop.getTimeStamp()}'}]-(b) return a,b,r`;
 
-  console.log(query);
-
   let response = await prop.apiCall(query);
   let result = response.res.records[0];
-  console.log(result);
   res.send(result);
-  // res.send(response)
 });
 
 api.post("/createRootNode", async (req, res) => {
@@ -582,14 +551,12 @@ api.post("/createRootNode", async (req, res) => {
     labelStrCreate +
     propStrCreate +
     childStrCreate;
-  console.log(query);
   let response = await prop.apiCall(query);
   let result = response.res;
   res.send(result);
 });
 
 api.post("/createSubNodeRel", async (req, res) => {
-  console.log(req.body);
   let dir1 = "";
   let dir2 = "";
   if (req.body.direction == "to") {
@@ -651,15 +618,13 @@ api.post("/createSubNodeRel", async (req, res) => {
     propStrCreate +
     childStrCreate;
 
-  console.log(query);
-  // //
+
   let response = await prop.apiCall(query);
   let result = response.res;
   res.send(result);
 });
 
 api.post("/createSystemRootNode", async (req, res) => {
-
 
   let configNodeId = req.body.obj.configNodeId;
   let parentNodeId = req.body.obj.parentNodeId;
@@ -707,14 +672,12 @@ api.post("/createSystemRootNode", async (req, res) => {
     labelStrCreate +
     propStrCreate +
     childStrCreate;
-  console.log(query);
   let response = await prop.apiCall(query);
   let result = response.res;
   res.send(result);
 });
 
 api.post("/createSystemSubNodeRel", async (req, res) => {
-  console.log(req.body);
   let dir1 = "";
   let dir2 = "";
   if (req.body.direction == "to") {
@@ -783,17 +746,12 @@ api.post("/createSystemSubNodeRel", async (req, res) => {
     propStrCreate +
     childStrCreate;
 
-  console.log(query);
-  // //
   let response = await prop.apiCall(query);
   let result = response.res;
   res.send(result);
 });
 
-
-
 api.post("/createInfoDataSubNodeRel", async (req, res) => {
-  console.log(req.body);
   let dir1 = "";
   let dir2 = "";
   if (req.body.direction == "to") {
@@ -873,17 +831,11 @@ api.post("/createInfoDataSubNodeRel", async (req, res) => {
     childStrCreate +
     relNodeCreate;
 
-  console.log(query);
-  // //
   let response = await prop.apiCall(query);
   let result = response.res;
   res.send(result);
 });
 
-
-
-
-// updateNode
 api.post("/updateNode", async (req, res) => {
   let query =
     "Match (a) where id(a)=$id SET a +={ title: $title, updated:$updated} with {title: $title, type: $type, id: $id, updated: $updated} as obj RETURN collect(distinct obj) as node";
@@ -899,7 +851,6 @@ api.post("/updateNode", async (req, res) => {
   res.send(result);
 });
 
-// updateConfigNode
 api.post("/updateConfigNode", async (req, res) => {
   let query =
     "Match (a) where id(a)=$id SET a +={ key: $key, value: $value, updated:$updated} RETURN a";
@@ -912,13 +863,10 @@ api.post("/updateConfigNode", async (req, res) => {
   };
   let response = await prop.apiCall(query, queryObject);
   let result = response.res.records[0];
-  console.log(result);
   res.send(result);
 });
 
 api.post("/updateAsidNode", async (req, res) => {
-  console.log(req.body);
-
   let label = `Match (a) where id(a)=${req.body.node.id} `;
 
   let propStrMatch = "";
@@ -949,15 +897,12 @@ api.post("/updateAsidNode", async (req, res) => {
     childPropStrSet +
     ` REMOVE a:${req.body.node.oldLabel} SET a:${req.body.node.title}`;
 
-  console.log(query);
   let response = await prop.apiCall(query);
   let result = response.res.records[0];
-  console.log(result);
   res.send(result);
 });
 
 api.post("/updateAsidChildProp", async (req, res) => {
-  console.log(req.body);
   let created = prop.getTimeStamp();
 
   let childStrMatch = `Match (n) where id(n)=${req.body.node.node.id} `;
@@ -981,11 +926,8 @@ api.post("/updateAsidChildProp", async (req, res) => {
 
   let response = await prop.apiCall(query);
   let result = response.res.records[0];
-  console.log(result);
   res.send(result);
 });
-
-// deleteNode
 
 api.post("/deleteNode", async (req, res) => {
   let query = "MATCH (a)<-[]-(b) where id(a)=$id return b";
@@ -1020,7 +962,6 @@ api.post("/deleteConfigNode", async (req, res) => {
   let query =
     "MATCH (a) where id(a)=$id detach delete a return toString(id(a))";
   let queryObject = { id: parseInt(req.body.id) };
-  console.log(query);
 
   const response = await prop.apiCall(query, queryObject);
   let result = JSON.parse(response.res.records[0].get(0)[0]);
@@ -1034,7 +975,6 @@ api.post("/deleteConfigNode", async (req, res) => {
 });
 
 api.post("/deleteAsidNode", async (req, res) => {
-  console.log(req.body);
   let query = `match (a) where id(a)=${req.body.id} 
 
       //kontrollera om (a) är en parentnod -> om det är en parentnod = TA INTE BORT
@@ -1055,7 +995,6 @@ api.post("/deleteAsidNode", async (req, res) => {
   // Get first response in array
   console.log(deleteCheckResult);
   if (deleteCheckResult.deletenode.childnodes.length == 0) {
-    console.log("can be deleted");
 
     let nodStrMatch = `Match (node) where id(node)=${req.body.id} `;
     let nodStrDelete = ` detach delete node`;
@@ -1067,7 +1006,6 @@ api.post("/deleteAsidNode", async (req, res) => {
       });
     }
     query1 = nodStrMatch + nodStrDelete + ` return node`;
-    console.log(query1);
 
     const deleteNode = await prop.apiCall(query1);
     let result1 = deleteNode.res.records;
@@ -1124,9 +1062,12 @@ api.post("/getSystemConfig", async (req, res) => {
   res.send(result);
 });
 
+
+
 api.get("/", (req, res) => {
   res.send("Welcome to home page");
 });
 
 const PORT = process.env.PORT || 8080;
 api.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+ 
