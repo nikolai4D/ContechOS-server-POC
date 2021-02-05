@@ -110,6 +110,7 @@ api.post("/tokenVal", async (req, res) => {
 
 /* Reads all CONFIG nodes and rels from db */
 api.post("/readConfig", async (req, res) => {
+
   let query = `MATCH (n0:${req.body.configType})
   OPTIONAL MATCH (n1:${req.body.configType})-[r]->(n2:${req.body.configType})
   with id(n0) as nid,n0,r,n1,n2
@@ -132,7 +133,7 @@ api.post("/readConfig", async (req, res) => {
 
 /* Reads all ASID nodes and rels from db */
 api.post("/readModel", async (req, res) => {
-  console.log(req.body);
+
   let query = `MATCH (n0:${req.body.selectedGraph}) where not n0:ChildProp and not n0:Prop
   optional match (n0)-[:HAS_PROPVAL]->(pv0:PropVal)-[:HAS_PROP]->(p0)
   optional match (n0)-[:HAS_CHILDPROP]->(cp0)
@@ -157,6 +158,7 @@ api.post("/readModel", async (req, res) => {
 
 /* Getting the data types for CONFIG (during create) */
 api.get("/getConfigDataTypes", async (req, res) => {
+
   let query =
     "MATCH (m:ConfigRelDataType), (n:ConfigNodeDataType) with collect(properties(n)) as prps, m  with collect(properties(m)) as relprps, prps with {node: {props:prps}, rel: {props:relprps}} as result  RETURN apoc.convert.toJson(result)";
   let response = await prop.apiCall(query);
@@ -165,9 +167,9 @@ api.get("/getConfigDataTypes", async (req, res) => {
   res.send(result);
 });
 
-/* Getting the rels for CONFIG (during create) */
+/* Getting data for CONFIG for create */
 api.post("/getConfigConfigRel", async (req, res) => {
-  console.log(req.body);
+
   let query = `MATCH (n0:Config:${req.body.title})-[:HAS_REL]->(n1) with collect({id:ID(n1),key:n1.key, value:n1.value}) as prps with {rels:prps} as json RETURN apoc.convert.toJson(json)`;
   let response = await prop.apiCall(query);
   let result = response.res.records[0].get(0);
@@ -175,7 +177,7 @@ api.post("/getConfigConfigRel", async (req, res) => {
   res.send(result);
 });
 
-/* */
+/* Getting data for create */
 api.post("/getConfigConfigNodes", async (req, res) => {
 
   let query = `MATCH (n0)-[r]->(n1) where ID(n0)=${req.body.id} with n0,n1,r, collect([val in labels(n1) where not val in ["Config", "AdminConfig","SystemConfig","InformationConfig", "DataConfig"]]) as lbl unwind lbl as lb unwind lb as l with collect({nodeLabel:l,id:ID(n1),key:n1.key, value:n1.value, Rel:Type(r)}) as prps with {nodes:prps} as json RETURN apoc.convert.toJson(json)`;
@@ -186,7 +188,7 @@ api.post("/getConfigConfigNodes", async (req, res) => {
   res.send(result);
 });
 
-/* */
+/* Getting data for create */
 api.post("/getAdminConfigRels", async (req, res) => {
 
   let query = `match (n0:Config:${req.body.obj.from})-[:HAS_REL]->(n)-[:TO_NODE]->(n1:Config:${req.body.obj.to}) with n,n0,n1, collect([val in labels(n) where not val in ["Config", "AdminConfig","SystemConfig","InformationConfig", "DataConfig"]]) as lbl unwind lbl as lb unwind lb as l with collect({id:ID(n),label:l, key:n.key, value:n.value}) as rls with {rels:rls} as json RETURN apoc.convert.toJson(json)`;
@@ -196,7 +198,7 @@ api.post("/getAdminConfigRels", async (req, res) => {
   res.send(result);
 });
 
-/* */
+/* Getting data for create */
 api.post("/getAsidRootConfig", async (req, res) => {
 
   let label = req.body.selectedGraph + "Config";
@@ -222,8 +224,9 @@ api.post("/getAsidRootConfig", async (req, res) => {
   res.send(result);
 });
 
-/* */
+/* Getting data for create */
 api.post("/getAsidChildProps", async (req, res) => {
+
   let query = `optional match (p:ChildProp:${req.body.selectedGraph}) where not p.value="" 
   optional match (dt:DataType:Config) where not dt.value="" 
   with collect({id:id(p),key:p.key, value:p.value}) as prps,dt 
@@ -236,7 +239,7 @@ api.post("/getAsidChildProps", async (req, res) => {
   res.send(result);
 });
 
-/* */
+/* Getting data for create in SID */
 api.post("/getSystemRootConfig", async (req, res) => {
 
   let label = req.body.selectedGraph + "Config";
@@ -262,20 +265,14 @@ api.post("/getSystemRootConfig", async (req, res) => {
   // hämta datatyper för config props
   optional match (p1:Prop:Config)-[:HAS_DATATYPE]->(dt1:DataType) 
   
-  
-  
   with (collect(labels(parent))) as prnts0,n,p1,dt1,l1,lv1,parent,cp,dtcp
   unwind(prnts0) as prnts1
   with collect({keyId:ID(cp),key:cp.value,dataType:dtcp.value,dataTypeId:ID(dtcp)}) as cps,prnts1,n,p1,dt1,l1,lv1,parent
   
-  
-  
   with collect({valueId:ID(parent),childProps:[val in cps where not val.keyId is null],value:[val in prnts1 where not val in ["Admin","System","Information"]][0]}) as prnts2,n,p1,dt1,l1,lv1
   with collect(prnts2) as prnts3,n,p1,dt1,l1,lv1
   unwind(prnts3) as prnts
-  
-  
-  
+
   with l1, collect({key:l1.value, value:lv1.value, keyId:id(l1),valueId:id(lv1)}) as lbl,n,p1,dt1,prnts 
   unwind(lbl) as lbl0 with collect(lbl0) as lbl1,n,p1,dt1,prnts
   with p1, collect({key:p1.value, keyId:id(p1),dataType:dt1.value,dataTypeId:ID(dt1)}) as prpX,n,lbl1,prnts
@@ -292,7 +289,7 @@ api.post("/getSystemRootConfig", async (req, res) => {
   res.send(result);
 });
 
-/* */
+/* Getting data for create to in SID */
 api.post("/getSystemSub", async (req, res) => {
 
   let label = req.body.selectedGraph + "Config";
@@ -356,14 +353,52 @@ api.post("/getSystemSub", async (req, res) => {
 
   res.send(result);
 
-})
+});
+
+/* Getting data for create in SID */
+api.post("/getSystemConfig", async (req, res) => {
+
+  let query = `match (nc:Node:Config)
+  optional match (nc)-[:HAS_PROP]->(nc_prop)-[:HAS_DATATYPE]->(nc_prop_dt:DataType)
+  optional match (nc)-[:HAS_LABEL]->(nc_label)-[:HAS_DATATYPE]->(nc_label_dt:DataType)
+  
+  match (nsc:Node:SystemConfig)
+  optional match (nsc)-[:HAS_PROP]->(nsc_prop)-[:HAS_DATATYPE]->(nsc_prop_dt:DataType)
+  optional match (nsc)-[:HAS_LABEL]->(nsc_label)-[:HAS_DATATYPE]->(nsc_label_dt:DataType)
+  with collect(distinct(
+          {id:ID(nc_prop),
+                  key:nc_prop.key,
+                  value:nc_prop_dt.key})) +
+                  collect(   distinct(     
+                  {id:ID(nsc_prop),
+                  key:nsc_prop.key,
+                  value:nsc_prop_dt.key})) as prprts
+                  
+              ,collect(distinct(
+          {id:ID(nc_label),
+                  key:nc_label.key,
+                  value:nc_label_dt.key})) +
+                  collect(  distinct(         
+                  {id:ID(nsc_label),
+                  key:nsc_label.key,
+                  value:nsc_label_dt.key})) as lbls
+ 
+  RETURN apoc.convert.toJson({
+        systemConfig:{
+              props:[val in prprts where val.key is not null],
+              labels:[val in lbls where val.key is not null]}
+              }) as obj `;
+
+  let response = await prop.apiCall(query);
+  let result = JSON.parse(response.res.records[0].get(0));
+  res.send(result);
+});
 
 /* Create 1 node in CONFIG */
 api.post("/createConfigNode", async (req, res) => {
-  (created = prop.getTimeStamp()), (guid = v4());
 
-  let query = `create (s:${req.body.labels[0]}:${req.body.labels[1]} {guid:'${guid}', created: '${created}', updated:'${created}', key:'${req.body.props.key}', value:'${req.body.props.value}'}) return s`;
-  //
+  let query = `create (s:${req.body.labels[0]}:${req.body.labels[1]} {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}', key:'${req.body.props.key}', value:'${req.body.props.value}'}) return s`;
+  
   let response = await prop.apiCall(query);
   let result = response.res;
   res.send(result);
@@ -371,6 +406,7 @@ api.post("/createConfigNode", async (req, res) => {
 
 /* Create 1 rel between 2 existing nodes in CONFIG */
 api.post("/createConfigRel", async (req, res) => {
+
   const { type, to, from } = req.body;
 
   let query = `MATCH (a) where id(a)=${parseInt(
@@ -386,6 +422,7 @@ api.post("/createConfigRel", async (req, res) => {
 
 /* Create 1 rel between 2 existing nodes in ASID */
 api.post("/createAsidRel", async (req, res) => {
+
   const { type, to, from } = req.body;
 
   let query = `MATCH (a) where id(a)=${parseInt(
@@ -401,6 +438,7 @@ api.post("/createAsidRel", async (req, res) => {
 
 /* Create 1 node with 1 rel from/to existing node in CONFIG  */
 api.post("/createConfigNodeRel", async (req, res) => {
+
   let dir1 = "";
   let dir2 = "";
   if (req.body.direction == "to") {
@@ -411,37 +449,34 @@ api.post("/createConfigNodeRel", async (req, res) => {
     dir2 = "->";
   }
 
-  let created = prop.getTimeStamp();
-
   let query = `MATCH (n0) where ID(n0)=${
     req.body.node.id
   } create (n0)${dir1}[:${
     req.body.rel.type
-  } {guid:'${v4()}', created: '${created}', updated:'${created}'}]${dir2}(n1:${
+  } {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]${dir2}(n1:${
     req.body.node.labels[0]
   }:${req.body.node.labels[1]} {key:'${req.body.node.props.key}', value:'${
     req.body.node.props.value
-  }', guid:'${v4()}', created: '${created}', updated:'${created}'}) return n1`;
+  }', guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}) return n1`;
 
   let response = await prop.apiCall(query);
   let result = response.res;
   res.send(result);
 });
 
-/* Create 1 rel between 2 existing nodes in CONFIG Admin */
+/* Create 1 rel between 2 existing nodes in CONFIG's ASID */
 api.post("/createAdminConfigNode", async (req, res) => {
-  (created = prop.getTimeStamp()), (guid = v4());
 
-  let query = `create (s:${req.body.labels[0]}:${req.body.labels[1]} {guid:'${guid}', created: '${created}', updated:'${created}', key:'${req.body.props.key}', value:'${req.body.props.value}'}) return s`;
-
+  let query = `create (s:${req.body.labels[0]}:${req.body.labels[1]} {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}', key:'${req.body.props.key}', value:'${req.body.props.value}'}) return s`;
 
   let response = await prop.apiCall(query);
   let result = response.res;
   res.send(result);
 });
 
-/* Create 1 node with 1 rel from/to existing node in CONFIG Admin */
+/* Create 1 node with 1 rel from/to existing node in CONFIG's ASID */
 api.post("/createAdminConfigNodeRel", async (req, res) => {
+
   let dir1 = "";
   let dir2 = "";
   if (req.body.direction == "to") {
@@ -452,43 +487,40 @@ api.post("/createAdminConfigNodeRel", async (req, res) => {
     dir2 = "->";
   }
 
-  let created = prop.getTimeStamp()
-
   let query = `MATCH (n0) where ID(n0)=${
     req.body.node.id
   } create (n0)${dir1}[:${
     req.body.rel.type
-  } {guid:'${v4()}', created: '${created}', updated:'${created}'}]${dir2}(n1:${
+  } {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]${dir2}(n1:${
     req.body.node.labels[0]
   }:${req.body.node.labels[1]} {key:'${req.body.node.props.key}', value:'${
     req.body.node.props.value
-  }', guid:'${v4()}', created: '${created}', updated:'${created}'}) return n1`;
+  }', guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}) return n1`;
 
-  console.log(query);
   
   let response = await prop.apiCall(query);
   let result = response.res;
   res.send(result);
 });
 
-/* Create 1 node in CONFIG and A */
+/* Create 1 node in A */
 api.post("/createRootNode", async (req, res) => {
+
   let configNodeId = req.body.obj.configNodeId;
-  let created = prop.getTimeStamp();
 
   let labelStrMatch = ` match (configNode) where ID(configNode)=${configNodeId} `;
   let labelStrCreate = ` create (n:${req.body.obj.node.labels[0]}:${
     req.body.obj.node.labels[1]
-  } {guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_CONFIG {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(configNode) `;
+  } {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_CONFIG {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(configNode) `;
 
   let propStrMatch = "";
   let propStrCreate = "";
 
   req.body.obj.node.props.map((prop, i) => {
     propStrMatch += ` match (p${i}:Prop) where ID(p${i})=${prop.keyId} `;
-    propStrCreate += ` create (n)-[:HAS_PROPVAL {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(pv${i}:PropVal {value:'${
+    propStrCreate += ` create (n)-[:HAS_PROPVAL {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(pv${i}:PropVal {value:'${
       prop.value
-    }', guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_PROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(p${i}) `;
+    }', guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_PROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(p${i}) `;
   });
 
   let childStrMatch = "";
@@ -497,14 +529,14 @@ api.post("/createRootNode", async (req, res) => {
   req.body.obj.node.childProps.map((dt, i) => {
     if (dt.value1.value == null) {
       childStrMatch += ` match (dt${i}:DataType) where ID(dt${i})=${dt.value2} `;
-      childStrCreate += `create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(cp${i}:ChildProp:${
+      childStrCreate += `create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(cp${i}:ChildProp:${
         req.body.selectedGraph
       } {key:'key',value:'${
         dt.value1
-      }', guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_DATATYPE {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(dt${i}) `;
+      }', guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_DATATYPE {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(dt${i}) `;
     } else {
       childStrMatch += `  match (cp${i}:ChildProp) where ID(cp${i})=${dt.value1.id} `;
-      childStrCreate += ` create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(cp${i})`;
+      childStrCreate += ` create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(cp${i})`;
     }
   });
   let query =
@@ -525,23 +557,21 @@ api.post("/createSystemRootNode", async (req, res) => {
   let configNodeId = req.body.obj.configNodeId;
   let parentNodeId = req.body.obj.parentNodeId;
 
-  let created = prop.getTimeStamp();
-
   let labelStrMatch = ` match (configNode) where ID(configNode)=${configNodeId} `;
   let parentStrMatch = ` match (parent) where ID(parent)=${parentNodeId} `;
 
   let labelStrCreate = ` create (parent)<-[:HAS_PARENT]-(n:${req.body.obj.node.labels[0]}:${
     req.body.obj.node.labels[1]
-  } {guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_CONFIG {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(configNode) `;
+  } {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_CONFIG {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(configNode) `;
 
   let propStrMatch = "";
   let propStrCreate = "";
 
   req.body.obj.node.props.map((prop, i) => {
     propStrMatch += ` match (p${i}) where ID(p${i})=${prop.keyId} `;
-    propStrCreate += ` create (n)-[:HAS_PROPVAL {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(pv${i}:PropVal {value:'${
+    propStrCreate += ` create (n)-[:HAS_PROPVAL {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(pv${i}:PropVal {value:'${
       prop.value
-    }', guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_PROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(p${i}) `;
+    }', guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_PROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(p${i}) `;
   });
 
   let childStrMatch = "";
@@ -550,14 +580,14 @@ api.post("/createSystemRootNode", async (req, res) => {
   req.body.obj.node.childProps.map((dt, i) => {
     if (dt.value1.value == null) {
       childStrMatch += ` match (dt${i}:DataType) where ID(dt${i})=${dt.value2} `;
-      childStrCreate += `create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(cp${i}:ChildProp:${
+      childStrCreate += `create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(cp${i}:ChildProp:${
         req.body.selectedGraph
       } {key:'key',value:'${
         dt.value1
-      }', guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_DATATYPE {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(dt${i}) `;
+      }', guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_DATATYPE {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(dt${i}) `;
     } else {
       childStrMatch += `  match (cp${i}:ChildProp) where ID(cp${i})=${dt.value1.id} `;
-      childStrCreate += ` create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(cp${i})`;
+      childStrCreate += ` create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(cp${i})`;
     }
   });
   let query =
@@ -573,8 +603,9 @@ api.post("/createSystemRootNode", async (req, res) => {
   res.send(result);
 });
 
-/* Create 1 node with 1 rel to existing node in CONFIG or A */
+/* Create 1 node with 1 rel to existing node in A */
 api.post("/createSubNodeRel", async (req, res) => {
+
   let dir1 = "";
   let dir2 = "";
   if (req.body.direction == "to") {
@@ -585,7 +616,6 @@ api.post("/createSubNodeRel", async (req, res) => {
     dir2 = "-";
   }
   let configNodeId = req.body.obj.configNodeId;
-  let created = prop.getTimeStamp();
 
   let superStrMatch = ` match (m) where id(m)=${req.body.obj.node.id} `;
 
@@ -595,20 +625,20 @@ api.post("/createSubNodeRel", async (req, res) => {
   
   create (m)${dir1}[:${
     req.body.obj.rel.type
-  } {guid:'${v4()}', created: '${created}', updated:'${created}'}]${dir2}(n:${
+  } {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]${dir2}(n:${
     req.body.obj.node.labels[0]
   }:${
     req.body.obj.node.labels[1]
-  } {guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_CONFIG {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(configNode) `;
+  } {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_CONFIG {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(configNode) `;
 
   let propStrMatch = "";
   let propStrCreate = "";
 
   req.body.obj.node.props.map((prop, i) => {
     propStrMatch += ` match (p${i}:Prop) where ID(p${i})=${prop.keyId} `;
-    propStrCreate += ` create (n)-[:HAS_PROPVAL {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(pv${i}:PropVal {value:'${
+    propStrCreate += ` create (n)-[:HAS_PROPVAL {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(pv${i}:PropVal {value:'${
       prop.value
-    }', guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_PROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(p${i}) `;
+    }', guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_PROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(p${i}) `;
   });
 
   let childStrMatch = "";
@@ -617,14 +647,14 @@ api.post("/createSubNodeRel", async (req, res) => {
   req.body.obj.node.childProps.map((dt, i) => {
     if (dt.value1.value == null) {
       childStrMatch += ` match (dt${i}:DataType) where ID(dt${i})=${dt.value2} `;
-      childStrCreate += `create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(cp${i}:ChildProp:${
+      childStrCreate += `create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(cp${i}:ChildProp:${
         req.body.selectedGraph
       } {key:'key',value:'${
         dt.value1
-      }', guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_DATATYPE {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(dt${i}) `;
+      }', guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_DATATYPE {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(dt${i}) `;
     } else {
       childStrMatch += `  match (cp${i}:ChildProp) where ID(cp${i})=${dt.value1.id} `;
-      childStrCreate += ` create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(cp${i})`;
+      childStrCreate += ` create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(cp${i})`;
     }
   });
   let query =
@@ -644,6 +674,7 @@ api.post("/createSubNodeRel", async (req, res) => {
 
 /* Create 1 node with 1 rel to existing node in S */
 api.post("/createSystemSubNodeRel", async (req, res) => {
+
   let dir1 = "";
   let dir2 = "";
   if (req.body.direction == "to") {
@@ -654,7 +685,6 @@ api.post("/createSystemSubNodeRel", async (req, res) => {
     dir2 = "-";
   }
   let configNodeId = req.body.obj.configNodeId;
-  let created = prop.getTimeStamp();
 
   let superStrMatch = ` match (m) where id(m)=${req.body.obj.node.id} `;
 
@@ -667,11 +697,11 @@ api.post("/createSystemSubNodeRel", async (req, res) => {
   
   create (m)${dir1}[:${
     req.body.obj.rel.type
-  } {guid:'${v4()}', created: '${created}', updated:'${created}'}]${dir2}(n:${
+  } {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]${dir2}(n:${
     req.body.obj.node.labels[0]
   }:${
     req.body.obj.node.labels[1]
-  } {guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_CONFIG {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(configNode) `;
+  } {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_CONFIG {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(configNode) `;
 
   let parentStrCreate = ` create (n)-[:HAS_PARENT]->(parent) `
 
@@ -680,9 +710,9 @@ api.post("/createSystemSubNodeRel", async (req, res) => {
 
   req.body.obj.node.props.map((prop, i) => {
     propStrMatch += ` match (p${i}) where ID(p${i})=${prop.keyId} `;
-    propStrCreate += ` create (n)-[:HAS_PROPVAL {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(pv${i}:PropVal {value:'${
+    propStrCreate += ` create (n)-[:HAS_PROPVAL {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(pv${i}:PropVal {value:'${
       prop.value
-    }', guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_PROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(p${i}) `;
+    }', guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_PROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(p${i}) `;
   });
 
   let childStrMatch = "";
@@ -691,14 +721,14 @@ api.post("/createSystemSubNodeRel", async (req, res) => {
   req.body.obj.node.childProps.map((dt, i) => {
     if (dt.value1.value == null) {
       childStrMatch += ` match (dt${i}:DataType) where ID(dt${i})=${dt.value2} `;
-      childStrCreate += `create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(cp${i}:ChildProp:${
+      childStrCreate += `create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(cp${i}:ChildProp:${
         req.body.selectedGraph
       } {key:'key',value:'${
         dt.value1
-      }', guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_DATATYPE {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(dt${i}) `;
+      }', guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_DATATYPE {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(dt${i}) `;
     } else {
       childStrMatch += `  match (cp${i}:ChildProp) where ID(cp${i})=${dt.value1.id} `;
-      childStrCreate += ` create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(cp${i})`;
+      childStrCreate += ` create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(cp${i})`;
     }
   });
   let query =
@@ -719,6 +749,7 @@ api.post("/createSystemSubNodeRel", async (req, res) => {
 
 /* Create 1 node with 1 rel to existing node in ID */
 api.post("/createInfoDataSubNodeRel", async (req, res) => {
+
   let dir1 = "";
   let dir2 = "";
   if (req.body.direction == "to") {
@@ -729,15 +760,12 @@ api.post("/createInfoDataSubNodeRel", async (req, res) => {
     dir2 = "-";
   }
   let configNodeId = req.body.obj.configNodeId;
-  let created = prop.getTimeStamp();
 
   let superStrMatch = ` match (m) where id(m)=${req.body.obj.node.id} `;
 
   let labelStrMatch = ` match (configNode) where ID(configNode)=${configNodeId} `;
 
   let parentStrMatch = ` match (parent) where ID(parent)=${req.body.obj.parentNodeId} `;
-
-
 
   let relNodeMatch = '';
   let relNodeCreate = '';
@@ -751,11 +779,11 @@ api.post("/createInfoDataSubNodeRel", async (req, res) => {
   
   create (m)${dir1}[:${
     req.body.obj.rel.type
-  } {guid:'${v4()}', created: '${created}', updated:'${created}'}]${dir2}(n:${
+  } {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]${dir2}(n:${
     req.body.obj.node.labels[0]
   }:${
     req.body.obj.node.labels[1]
-  } {guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_CONFIG {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(configNode) `;
+  } {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_CONFIG {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(configNode) `;
 
   let parentStrCreate = ` create (n)-[:HAS_PARENT]->(parent) `
 
@@ -764,9 +792,9 @@ api.post("/createInfoDataSubNodeRel", async (req, res) => {
 
   req.body.obj.node.props.map((prop, i) => {
     propStrMatch += ` match (p${i}) where ID(p${i})=${prop.keyId} `;
-    propStrCreate += ` create (n)-[:HAS_PROPVAL {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(pv${i}:PropVal {value:'${
+    propStrCreate += ` create (n)-[:HAS_PROPVAL {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(pv${i}:PropVal {value:'${
       prop.value
-    }', guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_PROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(p${i}) `;
+    }', guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_PROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(p${i}) `;
   });
 
   let childStrMatch = "";
@@ -775,14 +803,14 @@ api.post("/createInfoDataSubNodeRel", async (req, res) => {
   req.body.obj.node.childProps.map((dt, i) => {
     if (dt.value1.value == null) {
       childStrMatch += ` match (dt${i}:DataType) where ID(dt${i})=${dt.value2} `;
-      childStrCreate += `create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(cp${i}:ChildProp:${
+      childStrCreate += `create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(cp${i}:ChildProp:${
         req.body.selectedGraph
       } {key:'key',value:'${
         dt.value1
-      }', guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_DATATYPE {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(dt${i}) `;
+      }', guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_DATATYPE {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(dt${i}) `;
     } else {
       childStrMatch += `  match (cp${i}:ChildProp) where ID(cp${i})=${dt.value1.id} `;
-      childStrCreate += ` create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(cp${i})`;
+      childStrCreate += ` create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(cp${i})`;
     }
   });
   let query =
@@ -805,6 +833,7 @@ api.post("/createInfoDataSubNodeRel", async (req, res) => {
 
 /* Update 1 node in CONFIG */
 api.post("/updateConfigNode", async (req, res) => {
+
   let query =
     "Match (a) where id(a)=$id SET a +={ key: $key, value: $value, updated:$updated} RETURN a";
 
@@ -821,6 +850,7 @@ api.post("/updateConfigNode", async (req, res) => {
 
 /* Update 1 node in ASID */
 api.post("/updateAsidNode", async (req, res) => {
+
   let label = `Match (a) where id(a)=${req.body.node.id} `;
 
   let propStrMatch = "";
@@ -858,7 +888,6 @@ api.post("/updateAsidNode", async (req, res) => {
 
 /* Update child props in ASID */
 api.post("/updateAsidChildProp", async (req, res) => {
-  let created = prop.getTimeStamp();
 
   let childStrMatch = `Match (n) where id(n)=${req.body.node.node.id} `;
   let childStrCreate = "";
@@ -866,14 +895,14 @@ api.post("/updateAsidChildProp", async (req, res) => {
   req.body.node.node.childProps.map((dt, i) => {
     if (dt.value1.value == null) {
       childStrMatch += ` match (dt${i}:DataType) where ID(dt${i})=${dt.value2} `;
-      childStrCreate += `create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(cp${i}:ChildProp:${
+      childStrCreate += `create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(cp${i}:ChildProp:${
         req.body.node.selectedGraph
       } {key:'key',value:'${
         dt.value1
-      }', guid:'${v4()}', created: '${created}', updated:'${created}'})-[:HAS_DATATYPE {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(dt${i}) `;
+      }', guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'})-[:HAS_DATATYPE {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(dt${i}) `;
     } else {
       childStrMatch += `  match (cp${i}:ChildProp) where ID(cp${i})=${dt.value1.id} `;
-      childStrCreate += ` create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${created}', updated:'${created}'}]->(cp${i})`;
+      childStrCreate += ` create (n)-[:HAS_CHILDPROP {guid:'${v4()}', created: '${prop.getTimeStamp()}', updated:'${prop.getTimeStamp()}'}]->(cp${i})`;
     }
   });
 
@@ -886,6 +915,7 @@ api.post("/updateAsidChildProp", async (req, res) => {
 
 /* Delete node in SID */
 api.post("/deleteNode", async (req, res) => {
+
   let query = "MATCH (a)<-[]-(b) where id(a)=$id return b";
   let queryObject = { id: parseInt(req.body.id) };
 
@@ -916,6 +946,7 @@ api.post("/deleteNode", async (req, res) => {
 
 /* Delete node in CONFIG */
 api.post("/deleteConfigNode", async (req, res) => {
+
   let query =
     "MATCH (a) where id(a)=$id detach delete a return toString(id(a))";
   let queryObject = { id: parseInt(req.body.id) };
@@ -933,6 +964,7 @@ api.post("/deleteConfigNode", async (req, res) => {
 
 /* Delete node in A */
 api.post("/deleteAsidNode", async (req, res) => {
+
   let query = `match (a) where id(a)=${req.body.id} 
 
       //kontrollera om (a) är en parentnod -> om det är en parentnod = TA INTE BORT
@@ -951,7 +983,7 @@ api.post("/deleteAsidNode", async (req, res) => {
   const deleteCheck = await prop.apiCall(query);
   let deleteCheckResult = JSON.parse(deleteCheck.res.records[0].get(0));
   // Get first response in array
-  console.log(deleteCheckResult);
+
   if (deleteCheckResult.deletenode.childnodes.length == 0) {
 
     let nodStrMatch = `Match (node) where id(node)=${req.body.id} `;
@@ -979,46 +1011,6 @@ api.post("/deleteAsidNode", async (req, res) => {
       .status(403)
       .send({ message: "Noden har relation(er) till sig." });
   }
-});
-
-/* */
-api.post("/getSystemConfig", async (req, res) => {
-
-  
-  let query = `match (nc:Node:Config)
-  optional match (nc)-[:HAS_PROP]->(nc_prop)-[:HAS_DATATYPE]->(nc_prop_dt:DataType)
-  optional match (nc)-[:HAS_LABEL]->(nc_label)-[:HAS_DATATYPE]->(nc_label_dt:DataType)
-  
-  match (nsc:Node:SystemConfig)
-  optional match (nsc)-[:HAS_PROP]->(nsc_prop)-[:HAS_DATATYPE]->(nsc_prop_dt:DataType)
-  optional match (nsc)-[:HAS_LABEL]->(nsc_label)-[:HAS_DATATYPE]->(nsc_label_dt:DataType)
-  with collect(distinct(
-          {id:ID(nc_prop),
-                  key:nc_prop.key,
-                  value:nc_prop_dt.key})) +
-                  collect(   distinct(     
-                  {id:ID(nsc_prop),
-                  key:nsc_prop.key,
-                  value:nsc_prop_dt.key})) as prprts
-                  
-              ,collect(distinct(
-          {id:ID(nc_label),
-                  key:nc_label.key,
-                  value:nc_label_dt.key})) +
-                  collect(  distinct(         
-                  {id:ID(nsc_label),
-                  key:nsc_label.key,
-                  value:nsc_label_dt.key})) as lbls
- 
-  RETURN apoc.convert.toJson({
-        systemConfig:{
-              props:[val in prprts where val.key is not null],
-              labels:[val in lbls where val.key is not null]}
-              }) as obj `;
-
-  let response = await prop.apiCall(query);
-  let result = JSON.parse(response.res.records[0].get(0));
-  res.send(result);
 });
 
 
