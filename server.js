@@ -16,7 +16,9 @@ api.post("/register", async (req, res) => {
   const { email, password, name } = req.body;
 
   let query =
-    "Match (a:User {email: $email}) with {name: a.name, email: a.email, guid:a.guid, neoId: toString(id(a)), created: a.created, password: a.password, admin: a.admin} as obj RETURN collect(distinct obj) as user";
+    `Match (a:User {email: $email}) 
+    with {name: a.name, email: a.email, guid:a.guid, neoId: toString(id(a)), created: a.created, password: a.password, admin: a.admin} as obj 
+    RETURN collect(distinct obj) as user`;
   let queryObject = {
     email,
   };
@@ -30,7 +32,8 @@ api.post("/register", async (req, res) => {
       .send({ message: "Ett konto med epostradressen har redan skapats." });
   }
   query =
-    "CREATE (a:User {name: $name, email: $email, password: $password, guid:$guid, created: $created}) RETURN a";
+    `CREATE (a:User {name: $name, email: $email, password: $password, guid:$guid, created: $created}) 
+    RETURN a`;
 
   queryObject = {
     name,
@@ -49,7 +52,9 @@ api.post("/register", async (req, res) => {
 
 api.post("/login", async (req, res) => {
   let query =
-    "Match (a:User {email: $email}) with {password: a.password} as obj RETURN collect(distinct obj) as user";
+    `Match (a:User {email: $email}) with {password: a.password} as obj 
+    RETURN collect(distinct obj) as user`;
+
   let queryObject = {
     email: req.body.email,
   };
@@ -69,7 +74,9 @@ api.post("/login", async (req, res) => {
 
 api.post("/loginAuth", async (req, res) => {
   let query =
-    "Match (a:User {email: $email}) SET a.token=$token with {name: a.name, email: a.email, guid:a.guid, token: a.token} as obj RETURN collect(distinct obj) as user";
+    `Match (a:User {email: $email}) SET a.token=$token with {name: a.name, email: a.email, guid:a.guid, token: a.token} as obj 
+    RETURN collect(distinct obj) as user`;
+
   let queryObject = {
     email: req.body.email,
     token: req.body.token,
@@ -82,7 +89,9 @@ api.post("/loginAuth", async (req, res) => {
 
 api.post("/logout", async (req, res) => {
   let query =
-    "Match (a:User {token: $token}) REMOVE a.token with {guid:a.guid} as obj RETURN collect(distinct obj) as user";
+    `Match (a:User {token: $token}) REMOVE a.token with {guid:a.guid} as obj 
+    RETURN collect(distinct obj) as user`;
+    
   let queryObject = {
     token: req.body.token,
   };
@@ -160,7 +169,12 @@ api.post("/readModel", async (req, res) => {
 api.get("/getConfigDataTypes", async (req, res) => {
 
   let query =
-    "MATCH (m:ConfigRelDataType), (n:ConfigNodeDataType) with collect(properties(n)) as prps, m  with collect(properties(m)) as relprps, prps with {node: {props:prps}, rel: {props:relprps}} as result  RETURN apoc.convert.toJson(result)";
+    `MATCH (m:ConfigRelDataType), (n:ConfigNodeDataType) 
+    with collect(properties(n)) as prps, m  
+    with collect(properties(m)) as relprps, prps 
+    with {node: {props:prps}, rel: {props:relprps}} as result  
+    RETURN apoc.convert.toJson(result)`;
+
   let response = await prop.apiCall(query);
   let result = response.res.records[0].get(0);
 
@@ -170,7 +184,12 @@ api.get("/getConfigDataTypes", async (req, res) => {
 /* Getting data for CONFIG for create */
 api.post("/getConfigConfigRel", async (req, res) => {
 
-  let query = `MATCH (n0:Config:${req.body.title})-[:HAS_REL]->(n1) with collect({id:ID(n1),key:n1.key, value:n1.value}) as prps with {rels:prps} as json RETURN apoc.convert.toJson(json)`;
+  let query = `
+  MATCH (n0:Config:${req.body.title})-[:HAS_REL]->(n1) 
+  with collect({id:ID(n1),key:n1.key, value:n1.value}) as prps 
+  with {rels:prps} as json 
+  RETURN apoc.convert.toJson(json)`;
+
   let response = await prop.apiCall(query);
   let result = response.res.records[0].get(0);
 
@@ -180,7 +199,14 @@ api.post("/getConfigConfigRel", async (req, res) => {
 /* Getting data for create */
 api.post("/getConfigConfigNodes", async (req, res) => {
 
-  let query = `MATCH (n0)-[r]->(n1) where ID(n0)=${req.body.id} with n0,n1,r, collect([val in labels(n1) where not val in ["Config", "AdminConfig","SystemConfig","InformationConfig", "DataConfig"]]) as lbl unwind lbl as lb unwind lb as l with collect({nodeLabel:l,id:ID(n1),key:n1.key, value:n1.value, Rel:Type(r)}) as prps with {nodes:prps} as json RETURN apoc.convert.toJson(json)`;
+  let query = `
+  MATCH (n0)-[r]->(n1) where ID(n0)=${req.body.id} 
+  with n0,n1,r, collect([val in labels(n1) where not val in ["Config", "AdminConfig","SystemConfig","InformationConfig", "DataConfig"]]) as lbl 
+  unwind lbl as lb 
+  unwind lb as l 
+  with collect({nodeLabel:l,id:ID(n1),key:n1.key, value:n1.value, Rel:Type(r)}) as prps 
+  with {nodes:prps} as json 
+  RETURN apoc.convert.toJson(json)`;
 
   let response = await prop.apiCall(query);
   let result = response.res.records[0].get(0);
@@ -191,7 +217,15 @@ api.post("/getConfigConfigNodes", async (req, res) => {
 /* Getting data for create */
 api.post("/getAdminConfigRels", async (req, res) => {
 
-  let query = `match (n0:Config:${req.body.obj.from})-[:HAS_REL]->(n)-[:TO_NODE]->(n1:Config:${req.body.obj.to}) with n,n0,n1, collect([val in labels(n) where not val in ["Config", "AdminConfig","SystemConfig","InformationConfig", "DataConfig"]]) as lbl unwind lbl as lb unwind lb as l with collect({id:ID(n),label:l, key:n.key, value:n.value}) as rls with {rels:rls} as json RETURN apoc.convert.toJson(json)`;
+  let query = `
+  match (n0:Config:${req.body.obj.from})-[:HAS_REL]->(n)-[:TO_NODE]->(n1:Config:${req.body.obj.to}) 
+  with n,n0,n1, collect([val in labels(n) where not val in ["Config", "AdminConfig","SystemConfig","InformationConfig", "DataConfig"]]) as lbl 
+  unwind lbl as lb 
+  unwind lb as l 
+  with collect({id:ID(n),label:l, key:n.key, value:n.value}) as rls 
+  with {rels:rls} as json 
+  RETURN apoc.convert.toJson(json)`;
+
   let response = await prop.apiCall(query);
   let result = response.res.records[0].get(0);
 
@@ -203,7 +237,8 @@ api.post("/getAsidRootConfig", async (req, res) => {
 
   let label = req.body.selectedGraph + "Config";
 
-  let query = `match (n:${label}:Node{value:"root"})  
+  let query = `
+  match (n:${label}:Node{value:"root"})  
   optional match (n)-[:HAS_LABELVAL]->(lv1:LabelVal)-[:HAS_LABEL]->(l1:Label)<-[:HAS_LABEL]-(n) 
   optional match (p1:Prop:Config)-[:HAS_DATATYPE]->(dt1:DataType) 
   
