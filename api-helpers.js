@@ -1,3 +1,4 @@
+let v4 = require("uuid");
 let neo4j = require("neo4j-driver");
 require("dotenv").config();
 let driver = neo4j.driver(
@@ -17,6 +18,57 @@ exports.getTimeStamp = () => {
   let hour = date.getHours();
 
   return `${year}-${month}-${day} ${hour}:${minutes}:${seconds}`;
+}
+
+exports.getQueryStringRel = (attributes) =>  {
+  let {
+    first,
+    second,
+    direction,
+    title,
+    type,
+    attrib1,
+    attrib2,
+    attrib3,
+    attrib4,
+  } = attributes;
+  const arrayLength = first.length;
+
+  let matchStr = "MATCH ";
+  first.map((v, index) => {
+    matchStr += `(a${index} {guid:'${v}'}), `;
+  });
+  matchStr += `(b {guid:'${second}'})`;
+
+  let creatStr = " CREATE ";
+  let returnStr = " RETURN ";
+
+  first.map((v, index) => {
+    // let ids = uuidv4();
+    let ids = v4();
+
+    let d1 = "";
+    let d2 = "";
+    if (direction == "from-to") {
+      d2 = ">";
+    } else if (direction == "to-from") {
+      d1 = "<";
+    }
+    let str1 = `${d1}-[r${index}:${title} {created: '${getTimeStamp()}'}]-${d2}(b)`;
+
+    creatStr += `(a${index})${str1}`;
+
+    returnStr += `r${index}`;
+    
+    if (arrayLength !== index + 1) {
+        creatStr += ", ";
+        returnStr += ', ';
+      }
+  });
+
+  let query = matchStr + creatStr + returnStr;
+  console.log(query);
+  return query;
 }
 
 exports.apiCall = async (query, queryObject) => {
