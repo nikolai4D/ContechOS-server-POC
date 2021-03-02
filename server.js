@@ -176,13 +176,15 @@ api.post("/readConfig", async (req, res) => {
 api.post("/readModel", async (req, res) => {
   console.log(req.body);
   let query = `MATCH (n0:${req.body.selectedGraph}) where not n0:ChildProp and not n0:Prop
+  optional match (n0)-[:HAS_PARENT]->(a1)
   optional match (n0)-[:HAS_PROPVAL]->(pv0:PropVal)-[:HAS_PROP]->(p0)
   optional match (n0)-[:HAS_CHILDPROP]->(cp0)
   optional match (nr0: ${req.body.selectedGraph})-[r]->(nr1: ${req.body.selectedGraph}) where not nr0:ChildProp and not nr1:ChildProp
    
-  with n0, collect({keyId:ID(p0),key:p0.value,valueId:ID(pv0),value:pv0.value}) as prp,cp0,nr0,r,nr1
-  with n0, collect({keyId:ID(cp0),key:cp0.value}) as cprp,prp,nr0,r,nr1
-  with collect({id: toString(ID(n0)), props:prp, childProps:[val in cprp where not val.keyId is null],labels:labels(n0)}) as nds,nr0,r,nr1
+  with n0, collect({keyId:ID(p0),key:p0.value,valueId:ID(pv0),value:pv0.value}) as prp,cp0,nr0,r,nr1, a1
+  with n0, collect({keyId:ID(cp0),key:cp0.value}) as cprp,prp,nr0,r,nr1, a1
+  with n0, {id: ID(a1), labels: labels(a1)} as parent,cprp,prp,nr0,r,nr1,a1
+  with collect({parent: parent, id: toString(ID(n0)), props:prp, childProps:[val in cprp where not val.keyId is null],labels:labels(n0)}) as nds,nr0,r,nr1
   with collect(distinct({id:toString(id(r)), source:toString(id(nr0)), target:toString(id(nr1)),title: TYPE(r)})) as edgs,nds
   with { nodes: nds, rels: [ val in edgs where val.source is not null]} as json
   RETURN apoc.convert.toJson(json)`;
@@ -288,10 +290,9 @@ api.post("/getSystemRootConfig", async (req, res) => {
   
   let responseFirst = await prop.apiCall(queryFirst);
   let parentConfigRes = JSON.parse(responseFirst.res.records[0].get(0)).parentConfig
-  
+  console.log(queryFirst, "first")
+
   let query1 = `match (n:${label}:Node{value:"root"})
- 
-  
  
   
  //hämta parents
@@ -328,7 +329,7 @@ api.post("/getSystemRootConfig", async (req, res) => {
   with collect(prp0) as prp1,n,lbl1,prnts 
   
   with {node:{parentNodes:prnts,configNodeId:id(n),labels:lbl1,props:prp1}} as json RETURN apoc.convert.toJson(json)`
-
+console.log(query1, "second")
   let response = await prop.apiCall(query1);
   let result = response.res.records[0].get(0);
   console.log(result)
@@ -875,9 +876,9 @@ api.post("/createInfoDataSubNodeRel", async (req, res) => {
 
   console.log(query);
   // //
-  let response = await prop.apiCall(query);
-  let result = response.res;
-  res.send(result);
+  // let response = await prop.apiCall(query);
+  // let result = response.res;
+  // res.send(result);
 });
 
 
