@@ -406,7 +406,7 @@ api.post("/getSidRel", async (req, res) => {
 
   let query = `
   match (activenode) where ID(activenode)=${req.body.id}
-  optional match (otherparent)-[parentrel]->(p)<-[:HAS_PARENT]-(activenode),(otherparent)<-[:HAS_PARENT]-(b) where not otherparent:ChildProp
+  optional match (otherparent)<-[parentrel]-(p)<-[:HAS_PARENT]-(activenode),(otherparent)<-[:HAS_PARENT]-(b) where not otherparent:ChildProp
  
   with collect(type(parentrel)) as parentrels,b
   with collect(ID(b)) as bs,parentrels
@@ -414,7 +414,7 @@ api.post("/getSidRel", async (req, res) => {
   with collect({rels:parentrels,ids:bs}) as json 
 
   RETURN apoc.convert.toJson(json)`;
-  
+
   let response = await prop.apiCall(query);
   let result = response.res.records[0].get(0);
 
