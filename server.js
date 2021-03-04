@@ -418,8 +418,6 @@ api.post("/getSidRel", async (req, res) => {
   let response = await prop.apiCall(query);
   let result = response.res.records[0].get(0);
 
-  console.log(result, 'node rels')
-
   res.send(result);
 });
 
@@ -814,7 +812,7 @@ api.post("/createSystemSubNodeRel", async (req, res) => {
 
 
 api.post("/createInfoDataSubNodeRel", async (req, res) => {
-  console.log(req.body);
+  console.log(req.body, "create");
   let dir1 = "";
   let dir2 = "";
   if (req.body.direction == "to") {
@@ -894,11 +892,11 @@ api.post("/createInfoDataSubNodeRel", async (req, res) => {
     childStrCreate +
     relNodeCreate;
 
-  console.log(query);
+  // console.log(query);
   // //
-  // let response = await prop.apiCall(query);
-  // let result = response.res;
-  // res.send(result);
+  let response = await prop.apiCall(query);
+  let result = response.res;
+  res.send(result);
 });
 
 
