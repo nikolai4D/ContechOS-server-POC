@@ -290,7 +290,6 @@ api.post("/getSystemRootConfig", async (req, res) => {
   
   let responseFirst = await prop.apiCall(queryFirst);
   let parentConfigRes = JSON.parse(responseFirst.res.records[0].get(0)).parentConfig
-  console.log(queryFirst, "first")
 
   let query1 = `match (n:${label}:Node{value:"root"})
  
@@ -329,7 +328,6 @@ api.post("/getSystemRootConfig", async (req, res) => {
   with collect(prp0) as prp1,n,lbl1,prnts 
   
   with {node:{parentNodes:prnts,configNodeId:id(n),labels:lbl1,props:prp1}} as json RETURN apoc.convert.toJson(json)`
-console.log(query1, "second")
   let response = await prop.apiCall(query1);
   let result = response.res.records[0].get(0);
   console.log(result)
@@ -399,11 +397,33 @@ api.post("/getSystemSub", async (req, res) => {
 
   let response = await prop.apiCall(query1);
   let result = response.res.records[0].get(0);
-  console.log(result)
 
   res.send(result);
 
-})
+});
+
+api.post("/getSidRel", async (req, res) => {
+
+  let query = `
+  match (activenode) where ID(activenode)=${req.body.id}
+  optional match (otherparent)-[parentrel]->(p)<-[:HAS_PARENT]-(activenode),(otherparent)<-[:HAS_PARENT]-(b) where not otherparent:ChildProp
+ 
+  with collect(type(parentrel)) as parentrels,b
+  with collect(ID(b)) as bs,parentrels
+
+  with collect({rels:parentrels,ids:bs}) as json 
+
+  RETURN apoc.convert.toJson(json)`;
+  
+  let response = await prop.apiCall(query);
+  let result = response.res.records[0].get(0);
+
+  console.log(result, 'node rels')
+
+  res.send(result);
+});
+
+
 
 api.post("/createConfigNode", async (req, res) => {
   (created = prop.getTimeStamp()), (guid = v4());
