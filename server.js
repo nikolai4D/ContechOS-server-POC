@@ -245,8 +245,8 @@ api.post("/getAsidRootConfig", async (req, res) => {
 
   let query = `match (n:${label}:Node{value:"root"})  
   optional match (n)-[:HAS_LABELVAL]->(lv1:LabelVal)-[:HAS_LABEL]->(l1:Label)<-[:HAS_LABEL]-(n) 
-  optional match (p1:Prop:Config)-[:HAS_DATATYPE]->(dt1:DataType) 
-  
+  optional match (m:Config:Node)-[:HAS_REL]->(o:Config:Rel)-[:TO_NODE]->(p1:Prop:Config)-[:HAS_DATATYPE]->(dt1:DataType) 
+
   with l1, collect({key:l1.value, value:lv1.value, keyId:id(l1),valueId:id(lv1)}) as lbl,n,p1,dt1 
   unwind(lbl) as lbl0 with collect(lbl0) as lbl1,n,p1,dt1
   with p1, collect({key:p1.value, keyId:id(p1),dataType:dt1.value,dataTypeId:ID(dt1)}) as prpX,n,lbl1
