@@ -1,0 +1,43 @@
+type User {
+    id: ID! @id
+    name: String!
+    email: String!
+    createdAt: DateTime @timestamp(operations: [CREATE])
+    updatedAt: DateTime @timestamp(operations: [UPDATE])
+}
+
+type Config {
+    key: String!
+}
+
+type AdminConfig {
+    name: String!
+}
+
+type SystemConfig {
+    name: String!
+}
+
+type InformationConfig {
+    name: String!
+}
+
+type DataConfig {
+    name: String!
+}
+
+type Admin {
+    created: String!
+}
+
+type System {
+    name: String!
+}
+
+type Information {
+    name: String!
+}
+
+type Data {
+    name: String!
+}
