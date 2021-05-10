@@ -4,6 +4,8 @@ type User {
     email: String!
     createdAt: DateTime @timestamp(operations: [CREATE])
     updatedAt: DateTime @timestamp(operations: [UPDATE])
+    password: String!
+    token: String!
 }
 
 type Config {
@@ -41,3 +43,4 @@ type Information {
 type Data {
     name: String!
 }
+
