@@ -1,125 +1,382 @@
 type User {
-    guid: ID! @id
-    name: String!
-    email: String!
-    created: DateTime @timestamp(operations: [CREATE])
-    updated: String
-    password: String!
-    token: String
+  guid: ID! @id
+  name: String!
+  email: String!
+  created: DateTime @timestamp(operations: [CREATE])
+  updated: String
+  password: String!
+  token: String
 }
 
 type Query {
-    relsConfig: [Int] @cypher(statement: """match (c:Config)-[r]-(b:Config) return {title: type(r), id: toString(id(r)), source: toString(id(startNode(r))), target: toString(id(endNode(r))), created: r.created, updated: r.updated}""")
-    relsAdminConfig: [Int] @cypher(statement: """match (c:AdminConfig)-[r]-(b:AdminConfig) return {title: type(r), id: toString(id(r)), source: toString(id(startNode(r))), target: toString(id(endNode(r))), created: r.created, updated: r.updated}""")
-    relsSystemConfig: [Int] @cypher(statement: """match (c:SystemConfig)-[r]-(b:SystemConfig) return {title: type(r), id: toString(id(r)), source: toString(id(startNode(r))), target: toString(id(endNode(r))), created: r.created, updated: r.updated}""")
-    relsInformationConfig: [Int] @cypher(statement: """match (c:InformationConfig)-[r]-(b:InformationConfig) return {title: type(r), id: toString(id(r)), source: toString(id(startNode(r))), target: toString(id(endNode(r))), created: r.created, updated: r.updated}""")
-    relsDataConfig: [Int] @cypher(statement: """match (c:DataConfig)-[r]-(b:DataConfig) return {title: type(r), id: toString(id(r)), source: toString(id(startNode(r))), target: toString(id(endNode(r))), created: r.created, updated: r.updated}""")
-    groupsConfig: Int @cypher(statement: """match (n:Config)
-    unwind labels(n) as nodelabel with n, nodelabel where not nodelabel="Config"
-    return collect(distinct nodelabel)""")
+  relsConfig: [Int]
+    @cypher(
+      statement: """
+      match (c:Config)-[r]-(b:Config) return {title: type(r), id: toString(id(r)), source: toString(id(startNode(r))), target: toString(id(endNode(r))), created: r.created, updated: r.updated}
+      """
+    )
+  relsAdminConfig: [Int]
+    @cypher(
+      statement: """
+      match (c:AdminConfig)-[r]-(b:AdminConfig) return {title: type(r), id: toString(id(r)), source: toString(id(startNode(r))), target: toString(id(endNode(r))), created: r.created, updated: r.updated}
+      """
+    )
+  relsSystemConfig: [Int]
+    @cypher(
+      statement: """
+      match (c:SystemConfig)-[r]-(b:SystemConfig) return {title: type(r), id: toString(id(r)), source: toString(id(startNode(r))), target: toString(id(endNode(r))), created: r.created, updated: r.updated}
+      """
+    )
+  relsInformationConfig: [Int]
+    @cypher(
+      statement: """
+      match (c:InformationConfig)-[r]-(b:InformationConfig) return {title: type(r), id: toString(id(r)), source: toString(id(startNode(r))), target: toString(id(endNode(r))), created: r.created, updated: r.updated}
+      """
+    )
+  relsDataConfig: [Int]
+    @cypher(
+      statement: """
+      match (c:DataConfig)-[r]-(b:DataConfig) return {title: type(r), id: toString(id(r)), source: toString(id(startNode(r))), target: toString(id(endNode(r))), created: r.created, updated: r.updated}
+      """
+    )
+  groupsConfig: Int
+    @cypher(
+      statement: """
+      match (n:Config)
+      unwind labels(n) as nodelabel with n, nodelabel where not nodelabel="Config"
+      return collect(distinct nodelabel)
+      """
+    )
+
+  groupsAdminConfig: Int
+    @cypher(
+      statement: """
+      match (n:AdminConfig)
+      unwind labels(n) as nodelabel with n, nodelabel where not nodelabel="AdminConfig"
+      return collect(distinct nodelabel)
+      """
+    )
+
+  groupsSystemConfig: Int
+    @cypher(
+      statement: """
+      match (n:SystemConfig)
+      unwind labels(n) as nodelabel with n, nodelabel where not nodelabel="SystemConfig"
+      return collect(distinct nodelabel)
+      """
+    )
+  groupsInformationConfig: Int
+    @cypher(
+      statement: """
+      match (n:InformationConfig)
+      unwind labels(n) as nodelabel with n, nodelabel where not nodelabel="InformationConfig"
+      return collect(distinct nodelabel)
+      """
+    )
+  groupsDataConfig: Int
+    @cypher(
+      statement: """
+      match (n:DataConfig)
+      unwind labels(n) as nodelabel with n, nodelabel where not nodelabel="DataConfig"
+      return collect(distinct nodelabel)
+      """
+    )
 }
 
 type Config {
-    guid:String!
-    key: String!
-    value: String!
-    created: String
-    updated: String
-    labels(label: String): String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel""")
-    title(label: String): String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel""")
-    id: String @cypher(statement: """match (this) return toString(ID(this))""")
+  guid: String!
+  key: String!
+  value: String!
+  created: String
+  updated: String
+  labels(label: String): String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel
+      """
+    )
+  title(label: String): String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel
+      """
+    )
+  id: String
+    @cypher(
+      statement: """
+      match (this) return toString(ID(this))
+      """
+    )
 }
 
-
 type AdminConfig {
-    guid:String!
-    key: String!
-    value: String!
-    created: String
-    updated: String
-    labels(label: String): String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel""")
-    title(label: String): String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel""")
-    id: String @cypher(statement: """match (this) return toString(ID(this))""")
+  guid: String!
+  key: String!
+  value: String!
+  created: String
+  updated: String
+  labels(label: String): String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel
+      """
+    )
+  title(label: String): String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel
+      """
+    )
+  id: String
+    @cypher(
+      statement: """
+      match (this) return toString(ID(this))
+      """
+    )
 }
 
 type SystemConfig {
-    guid:String!
-    key: String!
-    value: String!
-    created: String
-    updated: String
-    labels(label: String): String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel""")
-    title(label: String): String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel""")
-    id: String @cypher(statement: """match (this) return toString(ID(this))""")
+  guid: String!
+  key: String!
+  value: String!
+  created: String
+  updated: String
+  labels(label: String): String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel
+      """
+    )
+  title(label: String): String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel
+      """
+    )
+  id: String
+    @cypher(
+      statement: """
+      match (this) return toString(ID(this))
+      """
+    )
 }
 
 type InformationConfig {
-    guid:String!
-    key: String!
-    value: String!
-    created: String
-    updated: String
-    labels(label: String): String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel""")
-    title(label: String): String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel""")
-    id: String @cypher(statement: """match (this) return toString(ID(this))""")
+  guid: String!
+  key: String!
+  value: String!
+  created: String
+  updated: String
+  labels(label: String): String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel
+      """
+    )
+  title(label: String): String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel
+      """
+    )
+  id: String
+    @cypher(
+      statement: """
+      match (this) return toString(ID(this))
+      """
+    )
 }
 
 type DataConfig {
-    guid:String!
-    key: String!
-    value: String!
-    created: String
-    updated: String
-    labels(label: String): String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel""")
-    title(label: String): String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel""")
-    id: String @cypher(statement: """match (this) return toString(ID(this))""")
+  guid: String!
+  key: String!
+  value: String!
+  created: String
+  updated: String
+  labels(label: String): String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel
+      """
+    )
+  title(label: String): String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel=$label return nodelabel
+      """
+    )
+  id: String
+    @cypher(
+      statement: """
+      match (this) return toString(ID(this))
+      """
+    )
 }
 
 type Admin {
-    guid:String!
-    created: String
-    updated: String
-    nodeLabel:  String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel='Admin' return nodelabel""")
-    nodeId:  String @cypher(statement: """match (this) return toString(ID(this))""")
-    relType: String @cypher(statement: """match (this)-[r]-(b) return type(r)""")
-    relId: String @cypher(statement: """match (this)-[r]-(b) return toString(id(r))""")
-    relSource: String @cypher(statement: """match (this)-[r]-(b) return toString(id(startNode(r)))""")
-    relTarget: String @cypher(statement: """match (this)-[r]-(b) return toString(id(endNode(r)))""")
+  guid: String!
+  created: String
+  updated: String
+  nodeLabel: String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel='Admin' return nodelabel
+      """
+    )
+  nodeId: String
+    @cypher(
+      statement: """
+      match (this) return toString(ID(this))
+      """
+    )
+  relType: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return type(r)
+      """
+    )
+  relId: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return toString(id(r))
+      """
+    )
+  relSource: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return toString(id(startNode(r)))
+      """
+    )
+  relTarget: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return toString(id(endNode(r)))
+      """
+    )
 }
 
 type System {
-    guid:String!
-    created: String
-    updated: String
-    nodeLabel:  String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel='System' return nodelabel""")
-    nodeId:  String @cypher(statement: """match (this) return toString(ID(this))""")
-    relType: String @cypher(statement: """match (this)-[r]-(b) return type(r)""")
-    relId: String @cypher(statement: """match (this)-[r]-(b) return toString(id(r))""")
-    relSource: String @cypher(statement: """match (this)-[r]-(b) return toString(id(startNode(r)))""")
-    relTarget: String @cypher(statement: """match (this)-[r]-(b) return toString(id(endNode(r)))""")
+  guid: String!
+  created: String
+  updated: String
+  nodeLabel: String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel='System' return nodelabel
+      """
+    )
+  nodeId: String
+    @cypher(
+      statement: """
+      match (this) return toString(ID(this))
+      """
+    )
+  relType: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return type(r)
+      """
+    )
+  relId: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return toString(id(r))
+      """
+    )
+  relSource: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return toString(id(startNode(r)))
+      """
+    )
+  relTarget: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return toString(id(endNode(r)))
+      """
+    )
 }
 
 type Information {
-    guid:String!
-    created: String
-    updated: String
-    nodeLabel:  String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel='Information' return nodelabel""")
-    nodeId:  String @cypher(statement: """match (this) return toString(ID(this))""")
-    relType: String @cypher(statement: """match (this)-[r]-(b) return type(r)""")
-    relId: String @cypher(statement: """match (this)-[r]-(b) return toString(id(r))""")
-    relSource: String @cypher(statement: """match (this)-[r]-(b) return toString(id(startNode(r)))""")
-    relTarget: String @cypher(statement: """match (this)-[r]-(b) return toString(id(endNode(r)))""")
+  guid: String!
+  created: String
+  updated: String
+  nodeLabel: String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel='Information' return nodelabel
+      """
+    )
+  nodeId: String
+    @cypher(
+      statement: """
+      match (this) return toString(ID(this))
+      """
+    )
+  relType: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return type(r)
+      """
+    )
+  relId: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return toString(id(r))
+      """
+    )
+  relSource: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return toString(id(startNode(r)))
+      """
+    )
+  relTarget: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return toString(id(endNode(r)))
+      """
+    )
 }
 
 type Data {
-    guid:String!
-    created: String
-    updated: String
-    nodeLabel:  String @cypher(statement: """match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel='Data' return nodelabel""")
-    nodeId:  String @cypher(statement: """match (this) return toString(ID(this))""")
-    relType: String @cypher(statement: """match (this)-[r]-(b) return type(r)""")
-    relId: String @cypher(statement: """match (this)-[r]-(b) return toString(id(r))""")
-    source: String @cypher(statement: """match (this)-[r]-(b) return toString(id(startNode(r)))""")
-    target: String @cypher(statement: """match (this)-[r]-(b) return toString(id(endNode(r)))""")
+  guid: String!
+  created: String
+  updated: String
+  nodeLabel: String
+    @cypher(
+      statement: """
+      match (this) with this, labels(this) as nodelabels unwind nodelabels as nodelabel with nodelabel where not nodelabel='Data' return nodelabel
+      """
+    )
+  nodeId: String
+    @cypher(
+      statement: """
+      match (this) return toString(ID(this))
+      """
+    )
+  relType: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return type(r)
+      """
+    )
+  relId: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return toString(id(r))
+      """
+    )
+  source: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return toString(id(startNode(r)))
+      """
+    )
+  target: String
+    @cypher(
+      statement: """
+      match (this)-[r]-(b) return toString(id(endNode(r)))
+      """
+    )
 }
-
